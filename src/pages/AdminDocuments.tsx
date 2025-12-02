@@ -3,13 +3,14 @@ import { useDocuments } from '../hooks/useDocuments'
 import { useNavigate } from 'react-router-dom'
 import { colors, typography } from '../theme'
 import { STATUS_COLORS } from '../constants/colors'
+import { supabase } from '../lib/supabase' // Import supabase
 
 export default function AdminDocuments() {
-  const { docs, cats, loading, error, updateStatus } = useDocuments()
+  const { docs, cats, loading, error, updateStatus, refreshDocuments } = useDocuments() // Get refreshDocuments
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
 
-  const getCatName = (cat_id: number) => {
+  const getCatName = (cat_id: string) => {
     if (!cats.length) return '...';
     const category = cats.find(cat => cat.id === cat_id);
     return category ? category.name : 'Uncategorized';
@@ -35,6 +36,45 @@ export default function AdminDocuments() {
     cursor: 'pointer',
     fontSize: typography.fontSizes.large,
     margin: '0 5px'
+  };
+
+  const handleDelete = async (docId: string, fileUrl: string) => {
+    if (!window.confirm(`Are you sure you want to delete this document? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // 1. Delete file from Supabase Storage
+      const urlParts = fileUrl.split('/');
+      const bucketName = urlParts[urlParts.indexOf('public') + 1]; // 'documents'
+      const storagePath = urlParts.slice(urlParts.indexOf(bucketName) + 1).join('/');
+
+      const { error: storageError } = await supabase.storage
+        .from('documents') // Assuming 'documents' is your bucket name
+        .remove([storagePath]);
+
+      if (storageError) {
+        console.error('Error deleting file from storage:', storageError);
+        throw new Error('Failed to delete file from storage: ' + storageError.message);
+      }
+
+      // 2. Delete record from Supabase Database
+      const { error: dbError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', docId);
+
+      if (dbError) {
+        console.error('Error deleting document record:', dbError);
+        throw new Error('Failed to delete document record: ' + dbError.message);
+      }
+
+      alert(`Document deleted successfully!`);
+      refreshDocuments(); // Refresh the list
+    } catch (err: any) {
+      console.error('Error during document deletion:', err);
+      alert(`Failed to delete document: ${err.message}`);
+    }
   };
 
   if (loading) return <div style={{ padding: '2rem', color: colors.text }}>Loading documents...</div>
@@ -92,6 +132,7 @@ export default function AdminDocuments() {
                 <td style={{ padding: '12px' }}>
                 <button onClick={() => updateStatus(doc.id, 'approved')} style={actionBtnStyle} title="Approve">✅</button>
                 <button onClick={() => updateStatus(doc.id, 'rejected')} style={actionBtnStyle} title="Reject">❌</button>
+                <button onClick={() => handleDelete(doc.id, doc.file_url)} style={actionBtnStyle} title="Delete">🗑️</button>
                 </td>
               </tr>
             ))}

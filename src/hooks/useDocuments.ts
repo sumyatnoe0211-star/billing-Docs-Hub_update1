@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 interface Document {
-  id: number;
+  id: string; // Changed to string
   file_name: string;
   file_url: string;
   uploaded_by: string;
-  category_id: number;
+  category_id: string; // Changed to string
   status: string;
   created_at: string;
 }
 
 interface Category {
-  id: number;
+  id: string; // Changed to string
   name: string;
 }
 
@@ -22,9 +22,10 @@ export function useDocuments() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true)
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
       const { data: docData, error: docError } = await supabase
         .from('documents')
         .select('*')
@@ -32,18 +33,23 @@ export function useDocuments() {
         .from('categories')
         .select('id, name')
 
-      if (docError || catError) {
-        setError('❌ Error fetching data: ' + (docError?.message || catError?.message))
-      } else {
-        setDocs(docData as Document[])
-        setCats(catData as Category[])
-      }
+      if (docError) throw docError;
+      if (catError) throw catError;
+      
+      setDocs(docData as Document[])
+      setCats(catData as Category[])
+    } catch (err: any) {
+      setError('❌ Error fetching data: ' + err.message)
+    } finally {
       setLoading(false)
     }
-    fetchData()
-  }, [])
+  }, []);
 
-  const updateStatus = async (id: number, newStatus: string) => {
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const updateStatus = async (id: string, newStatus: string) => { // Changed id to string
     const originalDocs = [...docs];
     const updatedDocs = docs.map(doc =>
       doc.id === id ? { ...doc, status: newStatus } : doc
@@ -61,5 +67,5 @@ export function useDocuments() {
     }
   };
 
-  return { docs, cats, loading, error, updateStatus }
+  return { docs, cats, loading, error, updateStatus, refreshDocuments: fetchData }
 }

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 interface Category {
-  id: number;
+  id: string; // Changed to string
   name: string;
 }
 
@@ -11,22 +11,25 @@ export function useCategories() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchCategories()
+  const fetchCategories = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name')
+      if (error) throw error
+      setCategories(data as Category[])
+    } catch (err: any) {
+      setError('❌ Error fetching categories: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const fetchCategories = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('categories')
-      .select('id, name')
-    if (error) {
-      setError('❌ Error fetching categories: ' + error.message)
-    } else {
-      setCategories(data as Category[])
-    }
-    setLoading(false)
-  }
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
   const addCategory = async (newCategoryName: string) => {
     if (!newCategoryName.trim()) return
@@ -44,7 +47,7 @@ export function useCategories() {
     }
   }
 
-  const deleteCategory = async (id: number) => {
+  const deleteCategory = async (id: string) => { // Changed id to string
     const originalCategories = [...categories]
     setCategories(prevCategories => prevCategories.filter(cat => cat.id !== id))
 
@@ -59,5 +62,26 @@ export function useCategories() {
     }
   }
 
-  return { categories, loading, error, addCategory, deleteCategory }
+  const renameCategory = async (id: string, newName: string) => {
+    if (!newName.trim()) {
+      setError('Category name cannot be empty.');
+      return;
+    }
+    const originalCategories = [...categories];
+    setCategories(prevCategories =>
+      prevCategories.map(cat => (cat.id === id ? { ...cat, name: newName } : cat))
+    );
+
+    const { error } = await supabase
+      .from('categories')
+      .update({ name: newName })
+      .eq('id', id);
+
+    if (error) {
+      setError('❌ Error renaming category: ' + error.message);
+      setCategories(originalCategories); // Revert on error
+    }
+  };
+
+  return { categories, loading, error, addCategory, deleteCategory, renameCategory, refreshCategories: fetchCategories }
 }

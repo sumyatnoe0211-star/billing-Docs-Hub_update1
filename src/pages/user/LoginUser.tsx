@@ -100,7 +100,7 @@ export default function LoginUser(): JSX.Element {
         boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
         border: `1px solid ${colors.lightGray}`
       }}>
-        <h1 style={{ marginBottom: '1rem', color: colors.primary, fontSize: typography.fontSizes.xLarge }}>Billing Docs Hub</h1>
+        <h1 style={{ marginBottom: '1rem', color: colors.success, fontSize: typography.fontSizes.xLarge }}>Billing Docs Hub</h1>
         <h2 style={{ fontSize: typography.fontSizes.large, marginBottom: '1rem', color: colors.text }}>User Login</h2>
 
         <form onSubmit={handleLogin} style={{ display: 'grid', gap: '1rem' }}>
@@ -146,7 +146,7 @@ export default function LoginUser(): JSX.Element {
             type="submit"
             disabled={loading}
             style={{
-              background: colors.primary,
+              background: colors.success,
               color: colors.white,
               padding: '0.8rem',
               border: 'none',
@@ -162,7 +162,7 @@ export default function LoginUser(): JSX.Element {
 
         <p style={{ fontSize: typography.fontSizes.small, color: colors.textLight, marginTop: '1rem', textAlign: 'center' }}>
           Don't have an account?{" "}
-          <Link to="/register/user" style={{ color: colors.secondary, textDecoration: 'underline' }}>
+          <Link to="/register/user" style={{ color: colors.success, textDecoration: 'underline' }}>
             Register here
           </Link>
         </p>

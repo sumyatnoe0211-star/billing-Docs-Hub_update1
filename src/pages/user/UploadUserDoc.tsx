@@ -126,7 +126,7 @@ export default function UploadUserDoc() {
                 <input
                   type="file"
                   style={{ display: 'none' }}
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.webp"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
                 />
               </label>

@@ -78,8 +78,9 @@ export function useUploadDocument() {
       const newDocument = {
         file_name: file.name,
         file_url: urlData.publicUrl,
-        category_id: parseInt(category),
+        category_id: category, // Assuming category ID is string/UUID
         uploaded_by: user.email,
+        user_id: user.id, // Add user_id
         status: 'pending',
       }
 

@@ -30,6 +30,10 @@ export default function AdminLayout() {
               .eq("email", supabaseUser.email)
               .single();
 
+            console.log("AdminLayout: Logged-in Supabase User ID:", supabaseUser.id);
+            console.log("AdminLayout: Profile Data from 'users' table:", profileData);
+            console.log("AdminLayout: Profile ID from 'users' table:", profileData?.id);
+
             if (profileError || !profileData || profileData.role !== 'admin') {
               console.error("AdminLayout: User not found in 'users' table or not an admin.");
               await supabase.auth.signOut(); // Force logout if not admin
@@ -125,14 +129,14 @@ export default function AdminLayout() {
         width: '240px',
         background: colors.primary,
         color: colors.white,
-        padding: '2rem',
+        padding: '1rem',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between'
       }}>
         <div>
-          <h2 style={{ marginBottom: '1rem', fontSize: typography.fontSizes.xLarge, fontWeight: typography.fontWeights.bold }}>Billing Docs Hub</h2>
-          <p style={{ color: colors.white, fontSize: typography.fontSizes.large, marginBottom: '1rem' }}>Admin Panel</p>
+          <h3 style={{ marginBottom: '0.6rem', fontSize: typography.fontSizes.xLarge, fontWeight: typography.fontWeights.bold }}>Billing Docs Hub</h3>
+          <p style={{ color: colors.white, fontSize: typography.fontSizes.medium, marginBottom: '1rem' }}>Admin Panel</p>
 
           <div
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.5rem', cursor: 'pointer' }}
@@ -232,36 +236,21 @@ export default function AdminLayout() {
 
         </div>
 
-        <div
-          id="user-info"
+        <button
+          onClick={handleLogout}
           style={{
-            padding: '1rem',
-            background: colors.secondary,
+            background: colors.darkGray,
+            color: colors.white,
+            border: 'none',
+            padding: '0.3rem 0.7rem',
             borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontWeight: typography.fontWeights.bold,
+            cursor: 'pointer',
             fontSize: typography.fontSizes.small,
           }}
         >
-          <span>{user?.nickname || 'Admin'}</span>
+          Logout
+        </button>
 
-          <button
-            onClick={handleLogout}
-            style={{
-              background: colors.danger,
-              color: colors.white,
-              border: 'none',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: typography.fontSizes.small,
-            }}
-          >
-            Logout
-          </button>
-        </div>
 
       </aside>
 
